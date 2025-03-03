@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { LogOut, Trash2 } from 'lucide-react';
+import { LogOut, Trash2, Loader2 } from 'lucide-react';
 import { signOut, getSession, getParticipants, deleteParticipant } from '../lib/supabase';
 
 interface Participant {
@@ -16,6 +16,7 @@ export default function Admin() {
   const [winner, setWinner] = useState<Participant | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -85,9 +86,17 @@ export default function Admin() {
       return;
     }
 
-    const randomIndex = Math.floor(Math.random() * participants.length);
-    setWinner(participants[randomIndex]);
-    toast.success('Sorteio realizado com sucesso!');
+    setIsDrawing(true);
+    
+    // Simulate a 3-5 second delay
+    const randomDelay = Math.floor(Math.random() * 2000) + 3000; // Between 3000-5000ms
+    
+    setTimeout(() => {
+      const randomIndex = Math.floor(Math.random() * participants.length);
+      setWinner(participants[randomIndex]);
+      toast.success('Sorteio realizado com sucesso!');
+      setIsDrawing(false);
+    }, randomDelay);
   };
 
   if (!isAuthenticated) return null;
@@ -102,10 +111,17 @@ export default function Admin() {
           <div className="flex gap-4">
             <button
               onClick={drawWinner}
-              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 disabled:opacity-50"
-              disabled={participants.length === 0 || isLoading}
+              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
+              disabled={participants.length === 0 || isLoading || isDrawing}
             >
-              Realizar Sorteio
+              {isDrawing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sorteando...
+                </>
+              ) : (
+                'Realizar Sorteio'
+              )}
             </button>
             <button
               onClick={handleSignOut}
